@@ -18,6 +18,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.Files;
+import java.io.IOException;
+
 public class ReekExecutorRunner extends ExecutorRunner implements Runner {
 
     @Override
@@ -35,16 +40,31 @@ public class ReekExecutorRunner extends ExecutorRunner implements Runner {
         );
 
         try {
+            // Log file path and size
+            Path filePath = Paths.get(file.getPath());
+            long fileSize = Files.size(filePath);
+            log.info("File path: " + filePath.toString());
+            log.info("File size: " + fileSize + " bytes");
+
+            // Log Reek parameters
+            ArrayList<String> parameters = getParameters(state);
+            log.info("Reek parameters: " + String.join(" ", parameters));
+
             Process process = executor.run();
             String output = getOutput(process);
 
             if (output.equals("")) {
-                log.error("Empty output...");
+                log.error("Empty output for file: " + filePath.toString());
+                log.error("File size: " + fileSize + " bytes");
+                log.error("Reek parameters: " + String.join(" ", parameters));
             }
 
             Result result = new ReekResult(output);
 
             return result.getWarnings();
+        } catch (IOException e) {
+            log.error("Failed to retrieve file details or execute Reek process.", e);
+            throw new ContextException("Execution failed.");
         } finally {
             this.deleteVirtualFile(file);
         }
