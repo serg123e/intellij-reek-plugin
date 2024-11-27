@@ -14,6 +14,7 @@ import engineering.b67.intellij_linter_base.ExecutorContext;
 import engineering.b67.intellij_linter_base.LinterNotifier;
 import engineering.b67.intellij_linter_base.Warning;
 import engineering.b67.intellij_linter_base.exception.ContextException;
+import engineering.b67.intellij_linter_base.exception.SdkException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +41,15 @@ public class ReekAnnotator extends ExternalAnnotator<ExecutorContext, List<Warni
         } catch (ContextException exception) {
             LinterNotifier linterNotifier = new LinterNotifier();
 
+            String detailedInfo = exception.getMessage();
             linterNotifier.notify(
-                    "Missing reek linter executable! " +
+                    "Exception: " + detailedInfo + " " +
+                    "Perhaps missing reek linter executable! " +
                     "Provide path to reek in \"Reek Linter\" settings tab."
             );
+            LOGGER.error("ContextException: "+detailedInfo, exception);
+        } catch (SdkException exception) {
+           // just ignore the exception for Rails Console or Interactive debugger sessions
         }
 
         return Collections.emptyList();

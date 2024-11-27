@@ -2,6 +2,7 @@ package engineering.b67.intellij_linter_base;
 
 import com.intellij.openapi.vfs.VirtualFile;
 import engineering.b67.intellij_linter_base.exception.ContextException;
+import engineering.b67.intellij_linter_base.exception.SdkException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -11,7 +12,7 @@ public interface Runner {
 
     ArrayList<String> getParameters(Service state);
 
-    CommandContext getDefaultCommandContext(ExecutorContext executorContext) throws ContextException;
+    CommandContext getDefaultCommandContext(ExecutorContext executorContext) throws ContextException, SdkException;
 
     String getFileExtension();
 
@@ -19,5 +20,5 @@ public interface Runner {
 
     Executor createExecutor(CommandContext executable, VirtualFile virtualFile, String basePath, Service state);
 
-    List<Warning> execute(@NotNull final ExecutorContext executorContext) throws ContextException;
+    List<Warning> execute(@NotNull final ExecutorContext executorContext) throws ContextException, SdkException;
 }

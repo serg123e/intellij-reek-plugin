@@ -5,7 +5,7 @@ plugins {
 }
 
 group 'engineering.b67'
-version '0.3'
+version '0.4'
 
 sourceCompatibility = 1.8
 
@@ -31,7 +31,9 @@ patchPluginXml {
     changeNotes = """
       0.1-eap. First testing release<br />
       0.2. Update dependecies<br />
-      0.3. Fix null pointer exception"""
+      0.3. Fix null pointer exception<br />
+      0.4. Better exception handling<br />
+    """
 
 }
 

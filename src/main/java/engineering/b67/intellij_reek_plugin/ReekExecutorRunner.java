@@ -6,6 +6,7 @@ import com.intellij.openapi.projectRoots.Sdk;
 import com.intellij.openapi.vfs.VirtualFile;
 import engineering.b67.intellij_linter_base.*;
 import engineering.b67.intellij_linter_base.exception.ContextException;
+import engineering.b67.intellij_linter_base.exception.SdkException;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.plugins.ruby.gem.RubyGemExecutionContext;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 public class ReekExecutorRunner extends ExecutorRunner implements Runner {
 
     @Override
-    public List<Warning> execute(@NotNull ExecutorContext executorContext) throws ContextException {
+    public List<Warning> execute(@NotNull ExecutorContext executorContext) throws ContextException, SdkException {
         Editor editor = executorContext.getEditor();
         VirtualFile file = createVirtualFile(editor.getDocument(), getFileExtension());
         Project project = editor.getProject();
@@ -69,7 +70,7 @@ public class ReekExecutorRunner extends ExecutorRunner implements Runner {
         return parameters;
     }
 
-    public CommandContext getCommandContext(ReekService state, ExecutorContext executorContext) throws ContextException {
+    public CommandContext getCommandContext(ReekService state, ExecutorContext executorContext) throws ContextException, SdkException {
         if (StringUtils.isEmpty(state.getExecutable())) {
             return getDefaultCommandContext(executorContext);
         }
@@ -78,15 +79,26 @@ public class ReekExecutorRunner extends ExecutorRunner implements Runner {
     }
 
     @Override
-    public CommandContext getDefaultCommandContext(ExecutorContext executorContext) throws ContextException {
+    public CommandContext getDefaultCommandContext(ExecutorContext executorContext) throws ContextException, SdkException {
         Sdk sdk = executorContext.getSdk();
-        String executable = RubyGemExecutionContext.getScriptPath(executorContext.getSdk(), executorContext.getModule(), "reek");
+        if (sdk == null) {
+            throw new SdkException("SDK is not available in current context");
+        }
+
+        String executable = RubyGemExecutionContext.getScriptPath(sdk, executorContext.getModule(), "reek");
 
         if (executable == null) {
-            throw new ContextException();
+            log.error("Failed to obtain the Reek executable path using SDK: " + sdk.getName());
+            // Consider fetching a generic path or using another method to obtain the executable if possible
+            // Example: Check for a system-wide installation or a predefined path
+            throw new ContextException("Failed to find the Reek executable.");
         }
 
         String interpreter = sdk.getHomePath();
+        if (interpreter == null) {
+            log.error("Home path for the SDK is not defined.");
+            throw new ContextException("Interpreter home path is undefined.");
+        }
 
         return new CommandContext(executable, interpreter);
     }
